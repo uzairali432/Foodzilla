@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import logo from "../../assets/Logo.png";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { registerUser } from "../../config/firebase/auth";
+import { registerUser } from "../../utils/authService";
 import { useNavigate } from "react-router-dom";
 import InputField from "../../components/common/InputField";
 import BtnSignUp from "../../components/common/BtnSignUp";
@@ -61,32 +61,18 @@ const RiderSignUp = () => {
   const navigate = useNavigate();
   const onSubmitAll = async (data) => {
     try {
-      const userCred = await registerUser({
+      const resp = await registerUser({
         email: data.email,
         password: data.password,
         role: "rider",
-        extraData: {
-          name: data.name,
-          phone: data.phoneNumber,
-          vehicleType: data.vehicleType,
-          licenseNumber: data.licenseNumber,
-        },
+        name: data.name,
+        phoneNumber: data.phoneNumber,
       });
-        dispatch({
-          type: "REGISTER_USER",
-          payload: data,
-        })
-      const userData = {
-        uid: userCred.user.uid,
-        email: userCred.email,
-        role: "rider",
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
-      if (userData) {
-        navigate("/RiderPage");
-      }
+      localStorage.setItem("token", resp.token);
+      localStorage.setItem("user", JSON.stringify(resp.user));
+      navigate("/RiderPage");
     } catch (err) {
-      alert(err.message);
+      alert(err?.response?.data?.message || err.message);
     }
   };
   return (

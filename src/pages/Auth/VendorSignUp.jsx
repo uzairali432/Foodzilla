@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import logo from "../../assets/Logo.png";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { registerUser } from "../../config/firebase/auth";
+import { registerUser } from "../../utils/authService";
 import { useNavigate } from "react-router-dom";
 import InputField from "../../components/common/InputField";
 import BtnSignUp from "../../components/common/BtnSignUp";
@@ -70,33 +70,19 @@ const VendorSignUp = () => {
 
   const onSubmitAll = async (data) => {
     try {
-      const userCred = await registerUser({
+      const resp = await registerUser({
         email: data.email,
-        role: "vendor",
         password: data.password,
-        extraData: {
-          businessName: data.businessName,
-          name: data.name,
-          phone: data.phoneNumber,
-          address: data.address,
-        },
-      });
-      dispatch({
-        type: "REGISTER_USER",
-        payload: data,
-      });
-      const userData = {
-        uid: userCred.user.uid,
-        email: userCred.user.email,
-        name: data.name,
         role: "vendor",
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
-      if (data.email) {
-        navigate("/VendorPage");
-      }
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+      });
+      // optionally you can dispatch or update context here
+      localStorage.setItem("token", resp.token);
+      localStorage.setItem("user", JSON.stringify(resp.user));
+      navigate("/VendorPage");
     } catch (err) {
-      alert(err.message);
+      alert(err?.response?.data?.message || err.message);
     }
   };
   return (

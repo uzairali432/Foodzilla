@@ -14,7 +14,8 @@ const Sidebar = ({
   role,
 }) => {
   const { state } = useAuthContext();
-  const name = state?.name || "User";
+  const name = state?.user?.name || "User";
+  const userRole = state?.user?.role || role; // fall back to prop if provided
 
   const [expandItems, setExpandItems] = useState(new Set());
 
@@ -111,7 +112,7 @@ const Sidebar = ({
               <p className="text-sm font-medium text-slate-800 dark:text-white truncate">
                 {name.charAt(0).toUpperCase() + name.slice(1)}
               </p>
-              <p className="text-xs text-slate-500 truncate">{role}</p>
+              <p className="text-xs text-slate-500 truncate">{userRole}</p>
             </div>
           </div>
         </div>

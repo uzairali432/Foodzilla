@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import logo from "../../assets/Logo.png";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { loginUser } from "../../config/firebase/auth";
+import { loginUser } from "../../utils/authService";
 import { useNavigate } from "react-router-dom";
 import InputField from "../../components/common/InputField";
 import BtnSignUp from "../../components/common/BtnSignUp";
@@ -34,19 +34,19 @@ const CustomerLogin = () => {
 
   const onSubmitAll = async (data) => {
     try {
-      await loginUser(data.email, data.password);
-
-      const userData = {
+      const resp = await loginUser({
         email: data.email,
-        role: "customer",
-      };
+        password: data.password,
+      });
 
-      localStorage.setItem("user", JSON.stringify(userData));
+      // store returned JWT token and user details
+      localStorage.setItem("token", resp.token);
+      localStorage.setItem("user", JSON.stringify(resp.user));
 
-      navigate("/"); 
+      navigate("/");
     } catch (error) {
-      console.error("Login Failed:", error.code, error.message);
-      alert(error.message);
+      console.error("Login Failed:", error?.response || error.message);
+      alert(error?.response?.data?.message || error.message);
     }
   };
 

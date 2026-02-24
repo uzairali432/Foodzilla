@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import logo from "../../assets/Logo.png";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { email, z } from "zod";
-import { registerUser } from "../../config/firebase/auth";
+import { registerUser } from "../../utils/authService";
 import { useNavigate } from "react-router-dom";
 import InputField from "../../components/common/InputField";
 import BtnSignUp from "../../components/common/BtnSignUp";
@@ -46,29 +46,22 @@ const CustomerSignUp = () => {
 
   const onSubmitAll = async (data) => {
     try {
-      const userCred = await registerUser(
-        {
-          email:data.email,
-          password:data.password,
-          role:"customer",
-          extraData:{
-            name: data.name,
-            phoneNumber: data.phoneNumber,
-          }
-        }
-      )
-      const userData = {
-      uid: userCred.user.uid,
-      email: data.email,
-      role: "customer",
-    };
-    localStorage.setItem("user", JSON.stringify(userData));
-      if(data.email){
-        navigate("/")
-      }
+      const resp = await registerUser({
+        email: data.email,
+        password: data.password,
+        role: "customer",
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+      });
+
+      // response contains token and user info
+      localStorage.setItem("token", resp.token);
+      localStorage.setItem("user", JSON.stringify(resp.user));
+
+      navigate("/");
     } catch (error) {
-      console.error("Login Failed:", error.message);
-      alert(error.message);
+      console.error("Sign up failed:", error?.response || error.message);
+      alert(error?.response?.data?.message || error.message);
     }
   };
 

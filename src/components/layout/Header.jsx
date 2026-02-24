@@ -7,15 +7,15 @@ import userImage from '../../assets/user.png'
 
 const Header = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
-  const { state} = useAuthContext();
-  const name = state?.name || "User";
-  const email = state?.email || "user@example.com";
+  const { state, dispatch } = useAuthContext();
+  const name = state?.user?.name || "User";
+  const email = state?.user?.email || "user@example.com";
 
   const content = (
     <div className="p-2 space-y-1">
       <p className="text-sm font-medium">{name}</p>
       <p className="text-xs text-slate-500 truncate">{email}</p>
-      <button onClick={() => handleLogout(navigate)} className="text-red-500 text-sm">Logout</button>
+      <button onClick={() => handleLogout(navigate, dispatch)} className="text-red-500 text-sm">Logout</button>
     </div>
   );
 

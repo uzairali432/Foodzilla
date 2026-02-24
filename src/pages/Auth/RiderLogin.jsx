@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import logo from "../../assets/Logo.png";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { loginUser } from "../../config/firebase/auth";
+import { loginUser } from "../../utils/authService";
 import { useNavigate } from "react-router-dom";
 import InputField from "../../components/common/InputField";
 import BtnSignUp from "../../components/common/BtnSignUp";
@@ -36,18 +36,17 @@ const RiderLogin = () => {
   
   const onSubmitAll = async (data) => {
     try {
-      await loginUser(data.Email, data.password);
-      const userData = {
+      const resp = await loginUser({
         email: data.Email,
-        role: "rider",
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
-      if (data.Email && data.password) {
-        navigate('/RiderPage')
+        password: data.password,
+      });
+      localStorage.setItem("token", resp.token);
+      localStorage.setItem("user", JSON.stringify(resp.user));
+      if (resp.user.role === "rider") {
+        navigate('/RiderPage');
       }
-
     } catch (error) {
-      alert(error.message);
+      alert(error?.response?.data?.message || error.message);
     }
   };
 

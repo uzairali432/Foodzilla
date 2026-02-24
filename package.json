@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "client": "vite",
+    "server": "node server/index.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -17,7 +19,8 @@
     "@mui/styled-engine-sc": "^7.3.3",
     "@tailwindcss/vite": "^4.1.12",
     "antd": "^5.28.1",
-    "firebase": "^12.4.0",
+    "axios": "^1.4.0",
+    "concurrently": "^8.0.1",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
