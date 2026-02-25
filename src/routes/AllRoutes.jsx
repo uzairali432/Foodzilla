@@ -17,6 +17,7 @@ import Main from '../pages/MainPage';
 import Footer from '../components/layout/Footer';
 import Navbar from '../components/layout/Navbar';
 import Home from '../pages/home/Home';
+import RestaurantPage from '../pages/RestaurantPage';
 
 const AllRoutes = ({ setShowNavbar }) => {
   const location = useLocation();
@@ -90,6 +91,7 @@ const AllRoutes = ({ setShowNavbar }) => {
           }
         />
 
+        <Route path="/restaurant/:id" element={<RestaurantPage />} />
         <Route path="/Main" element={<Main />} />
       </Routes>
 

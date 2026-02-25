@@ -2,8 +2,9 @@ import React, { useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
 import FoodItem from "./FoodItem";
 
-const FoodDisplay = ({ category }) => {
+const FoodDisplay = ({ items = null, category = "All", title }) => {
   const { food_list } = useContext(StoreContext);
+  const listToShow = items || food_list;
 
   return (
     <div
@@ -12,12 +13,12 @@ const FoodDisplay = ({ category }) => {
     >
       {/* Heading */}
       <h2 className="text-[max(2vw,24px)] font-semibold">
-        Top Dishes Near You
+        {title || "Top Dishes Near You"}
       </h2>
 
       {/* Grid List */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-x-[30px] gap-y-[50px] mt-8">
-        {food_list.map((item, index) => {
+        {listToShow.map((item, index) => {
           if (category === "All" || category === item.category) {
             return (
               <FoodItem

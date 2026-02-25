@@ -16,6 +16,16 @@ const registerSchema = Joi.object({
   phoneNumber: Joi.string()
     .pattern(/^\+?[0-9]{10,15}$/)
     .required(),
+  // when the user is a seller, we need restaurant information
+  restaurantName: Joi.string().min(2).max(50).when('role', {
+    is: 'seller',
+    then: Joi.required(),
+    otherwise: Joi.forbidden(),
+  }),
+  restaurantAddress: Joi.string()
+    .min(5)
+    .max(100)
+    .when('role', { is: 'seller', then: Joi.required(), otherwise: Joi.forbidden() }),
 });
 
 const loginSchema = Joi.object({
@@ -31,14 +41,19 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password, role, name, phoneNumber } = value;
+    const { email, password, role, name, phoneNumber, restaurantName, restaurantAddress } = value;
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = new User({ email, password: hashed, role, name, phoneNumber });
+    const userData = { email, password: hashed, role, name, phoneNumber };
+    if (role === 'seller') {
+      userData.restaurantName = restaurantName;
+      userData.restaurantAddress = restaurantAddress;
+    }
+    const user = new User(userData);
     await user.save();
 
     const token = jwt.sign(
@@ -54,6 +69,8 @@ router.post('/register', async (req, res) => {
         role: user.role,
         name: user.name,
         phoneNumber: user.phoneNumber,
+        ...(user.restaurantName && { restaurantName: user.restaurantName }),
+        ...(user.restaurantAddress && { restaurantAddress: user.restaurantAddress }),
       },
     });
   } catch (err) {
@@ -94,6 +111,8 @@ router.post('/login', async (req, res) => {
         role: user.role,
         name: user.name,
         phoneNumber: user.phoneNumber,
+        ...(user.restaurantName && { restaurantName: user.restaurantName }),
+        ...(user.restaurantAddress && { restaurantAddress: user.restaurantAddress }),
       },
     });
   } catch (err) {

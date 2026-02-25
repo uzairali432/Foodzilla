@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
     },
     name: { type: String },
     phoneNumber: { type: String },
+    // fields specific to sellers
+    restaurantName: { type: String },
+    restaurantAddress: { type: String },
   },
   { timestamps: true }
 );

@@ -1,55 +1,86 @@
 import { createContext, useState, useEffect } from "react";
-import { food_list as initialFoodList } from "../assets/assets";
 
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = ({ children }) => {
-  const [food_list, setFoodList] = useState(() => {
-    const savedProducts = localStorage.getItem('food_products');
-    if (savedProducts) {
-      return JSON.parse(savedProducts);
-    }
-    localStorage.setItem('food_products', JSON.stringify(initialFoodList));
-    return initialFoodList;
-  });
+  const [food_list, setFoodList] = useState([]);
+
+  // load products from server once on mount
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const resp = await fetch('/api/products');
+        const data = await resp.json();
+        setFoodList(data);
+      } catch (err) {
+        console.error('Failed to load products', err);
+      }
+    };
+    loadProducts();
+  }, []);
 
   const [cartItems, setCartItems] = useState({});
 
+  // whenever the list changes, keep a local copy too (optional)
   useEffect(() => {
     localStorage.setItem('food_products', JSON.stringify(food_list));
   }, [food_list]);
 
-  const addProduct = (product) => {
-  let lastId = 0;
-  if (food_list.length > 0) {
-    lastId = Math.max(
-      ...food_list.map((p) => {
-        const idNum = parseInt(p._id); 
-        return isNaN(idNum) ? 0 : idNum;
-      })
-    );
-  }
-
-  const newProduct = {
-    ...product,
-    _id: (lastId + 1).toString(), 
-    createdAt: new Date().toISOString(),
+  const addProduct = async (product) => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(product),
+      });
+      const created = await resp.json();
+      setFoodList((prev) => [...prev, created]);
+      return created;
+    } catch (err) {
+      console.error('Add product failed', err);
+    }
   };
 
-  setFoodList((prev) => [...prev, newProduct]);
-  return newProduct;
-};
-
-  const updateProduct = (productId, updatedData) => {
-    setFoodList((prev) =>
-      prev.map((product) =>
-        product._id === productId ? { ...product, ...updatedData } : product
-      )
-    );
+  const updateProduct = async (productId, updatedData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(updatedData),
+      });
+      const updated = await resp.json();
+      setFoodList((prev) =>
+        prev.map((product) =>
+          product._id === productId ? updated : product
+        )
+      );
+      return updated;
+    } catch (err) {
+      console.error('Update product failed', err);
+    }
   };
 
-  const deleteProduct = (productId) => {
-    setFoodList((prev) => prev.filter((product) => product._id !== productId));
+  const deleteProduct = async (productId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      setFoodList((prev) => prev.filter((product) => product._id !== productId));
+    } catch (err) {
+      console.error('Delete product failed', err);
+    }
   };
 
   const addToCart = (itemId) => {

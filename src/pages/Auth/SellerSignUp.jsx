@@ -76,6 +76,8 @@ const SellerSignUp = () => {
         role: "seller",
         name: data.name,
         phoneNumber: data.phoneNumber,
+        restaurantName: data.restaurantName,
+        restaurantAddress: data.restaurantAddress,
       });
       localStorage.setItem("token", resp.token);
       localStorage.setItem("user", JSON.stringify(resp.user));
