@@ -14,6 +14,7 @@ import ChartSection from "../../components/charts/ChartSection";
 import TableSection from "../../components/charts/TableSection";
 import AnalyticsReports from "../Seller/analytics/AnalyticsReports";
 import AnalyticsInsights from "../Seller/analytics/AnalyticsInsights";
+import VendorManagement from "./VendorManagement";
 
 const VendorPage = () => {
   const [sidebarMenu, setSidebarMenu] = useState(false);
@@ -52,6 +53,7 @@ const VendorPage = () => {
               {currentPage === "inventory" && <Products />}
               {currentPage === "transaction" && <Payments />}
               {currentPage === "messages" && <Messages />}
+              {currentPage === "restaurant-info" && <VendorManagement />}
             </div>
           </main>
         </div>

@@ -121,6 +121,16 @@ export const menuItems = [
     ],
   },
   {
+    id: "vendor-management",
+    icon: Users,
+    label: "Vendor Management",
+    subMenu: [
+      { id: "restaurant-info", label: "Restaurant Info" },
+      { id: "inventory", label: "Menu Management" },
+      { id: "order", label: "Order Handling" },
+    ],
+  },
+  {
     id: "order",
     icon: ShoppingBag,
     label: "Orders",
