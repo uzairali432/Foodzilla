@@ -25,7 +25,7 @@ const formSchema = z.object({
       message: "Must include at least 1 special character (@$!%*?&)",
     }),
 });
-const SellerLogin = () => {
+const AdminLogin = () => {
   const {
     register,
     handleSubmit,
@@ -42,8 +42,8 @@ const SellerLogin = () => {
       });
       localStorage.setItem("token", resp.token);
       localStorage.setItem("user", JSON.stringify(resp.user));
-      if (resp.user.role === "seller") {
-        navigate("/SellerPage");
+      if (resp.user.role === "admin") {
+        navigate("/AdminPage");
       }
     } catch (err) {
       alert(err?.response?.data?.message || err.message);
@@ -81,14 +81,8 @@ const SellerLogin = () => {
 
               <BtnSignUp
                 isSubmitting={isSubmitting}
-                linkText={
-                  <p className="text-gray-600">
-                    Create an account ?{" "}
-                    <span className="text-[#E64D21]">Sign Up</span>
-                  </p>
-                }
                 btnText={"Login"}
-                linkTo={"/SellerSignUp"}
+                linkTo={"/"}
               />
             </form>
           </div>
@@ -98,4 +92,4 @@ const SellerLogin = () => {
   );
 };
 
-export default SellerLogin;
+export default AdminLogin;
