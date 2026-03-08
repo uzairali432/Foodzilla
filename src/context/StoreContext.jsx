@@ -29,13 +29,21 @@ const StoreContextProvider = ({ children }) => {
   const addProduct = async (product) => {
     try {
       const token = localStorage.getItem('token');
+      const isFormData = product instanceof FormData;
+      
+      const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+      
+      // Only set Content-Type to application/json if sending a JSON object
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+
       const resp = await fetch('/api/products', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(product),
+        headers,
+        body: isFormData ? product : JSON.stringify(product),
       });
       const created = await resp.json();
       setFoodList((prev) => [...prev, created]);

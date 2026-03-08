@@ -2,6 +2,7 @@ import express from 'express';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
+import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -31,12 +32,25 @@ router.get('/:id', async (req, res) => {
 });
 
 // create new product (seller only)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
     if (req.user.role !== 'seller') {
       return res.status(403).json({ message: 'Only sellers can add products' });
     }
-    const product = new Product({ ...req.body, seller: req.user.id });
+    
+    // Use Cloudinary URL if available, else fallback to whatever string is passed in req.body
+    let imageUrl = '';
+    if (req.file) {
+      imageUrl = req.file.path;
+    } else if (req.body.image) {
+      imageUrl = req.body.image;
+    }
+
+    const product = new Product({ 
+      ...req.body, 
+      seller: req.user.id,
+      image: imageUrl
+    });
     await product.save();
     res.json(product);
   } catch (err) {

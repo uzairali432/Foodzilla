@@ -78,27 +78,17 @@ const ProductsManagement = () => {
   const handleSave = () => {
     if (!formData.name || !formData.price || !formData.category) return;
 
-    const convertToBase64 = (file) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (error) => reject(error);
-      });
-    };
-
     if (file) {
-      convertToBase64(file).then((base64Image) => {
-        const newProduct = {
-          name: formData.name,
-          category: formData.category,
-          price: parseFloat(formData.price),
-          description: formData.description,
-          image: base64Image,
-          stock: formData.stock || 0,
-          status: formData.status,
-        };
-        addProduct(newProduct);
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('category', formData.category);
+      data.append('price', formData.price);
+      data.append('description', formData.description);
+      data.append('stock', formData.stock || 0);
+      data.append('status', formData.status);
+      data.append('image', file);
+      
+      addProduct(data).then(() => {
         handleClose();
       });
     } else {
