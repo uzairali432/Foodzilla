@@ -25,12 +25,19 @@ const RestaurantList = () => {
         {restaurants.map((rest) => (
           <div
             key={rest._id}
-            className="border rounded-lg p-4 hover:shadow cursor-pointer"
+            className="border rounded-lg p-4 hover:shadow cursor-pointer flex flex-col"
             onClick={() => navigate(`/restaurant/${rest._id}`)}
           >
-            <h3 className="font-bold text-lg">{rest.restaurantName || rest.name}</h3>
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-bold text-lg">{rest.restaurantName || rest.name}</h3>
+              <div className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-sm font-semibold">
+                <span>★</span>
+                <span>{Number(rest.rating || 0).toFixed(1)}</span>
+                <span className="text-xs text-yellow-600">({rest.numReviews || 0})</span>
+              </div>
+            </div>
             {rest.restaurantAddress && (
-              <p className="text-sm text-gray-600">{rest.restaurantAddress}</p>
+              <p className="text-sm text-gray-600 flex-1">{rest.restaurantAddress}</p>
             )}
           </div>
         ))}

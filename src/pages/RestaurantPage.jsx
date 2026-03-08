@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import FoodDisplay from "./customer/FoodDisplay";
+import ReviewSection from "../components/common/ReviewSection";
 
 const RestaurantPage = () => {
   const { id } = useParams();
@@ -21,9 +22,8 @@ const RestaurantPage = () => {
 
     const loadInfo = async () => {
       try {
-        const res = await fetch(`/api/restaurants`);
-        const all = await res.json();
-        const rest = all.find((r) => r._id === id);
+        const res = await fetch(`/api/restaurants/${id}`);
+        const rest = await res.json();
         setRestaurant(rest);
       } catch (err) {
         console.error('Failed to fetch restaurant info', err);
@@ -48,6 +48,16 @@ const RestaurantPage = () => {
           <FoodDisplay items={menu} title="Menu" />
         )}
       </div>
+
+      {restaurant && (
+        <ReviewSection
+          entityId={id}
+          entityType="restaurants"
+          initialReviews={restaurant.reviews || []}
+          initialRating={restaurant.rating || 0}
+          initialNumReviews={restaurant.numReviews || 0}
+        />
+      )}
     </div>
   );
 };

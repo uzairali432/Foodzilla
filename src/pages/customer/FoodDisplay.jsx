@@ -28,6 +28,9 @@ const FoodDisplay = ({ items = null, category = "All", title }) => {
                 description={item.description}
                 price={item.price}
                 image={item.image}
+                rating={item.rating}
+                reviews={item.reviews}
+                numReviews={item.numReviews}
               />
             );
           }
