@@ -7,6 +7,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import productsRoutes from './routes/products.js';
 import restaurantRoutes from './routes/restaurants.js';
+import adminRoutes from './routes/admin.js';
 
 // explicitly load environment variables from the server directory
 const envPath = path.resolve(process.cwd(), 'server', '.env');
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/admin', adminRoutes);
 
 // health check
 app.get('/', (req, res) => {

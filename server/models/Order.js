@@ -1,0 +1,30 @@
+import mongoose from 'mongoose';
+
+const orderItemSchema = new mongoose.Schema(
+  {
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    name: { type: String, required: true },
+    quantity: { type: Number, required: true, min: 1 },
+    price: { type: Number, required: true, min: 0 },
+  },
+  { _id: false }
+);
+
+const orderSchema = new mongoose.Schema(
+  {
+    orderNumber: { type: String, required: true, unique: true },
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    items: { type: [orderItemSchema], default: [] },
+    totalAmount: { type: Number, required: true, min: 0 },
+    status: {
+      type: String,
+      enum: ['Pending', 'Processing', 'Delivered', 'Cancelled'],
+      default: 'Pending',
+    },
+    deliveryAddress: { type: String },
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model('Order', orderSchema);

@@ -22,8 +22,17 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ['customer', 'seller', 'vendor', 'rider'],
+      enum: ['customer', 'seller', 'vendor', 'rider', 'admin'],
       required: true,
+    },
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'approved',
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
     name: { type: String },
     phoneNumber: { type: String },
@@ -44,5 +53,12 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre('save', function setVendorDefaults(next) {
+  if (this.role === 'vendor' && !this.isModified('approvalStatus')) {
+    this.approvalStatus = 'pending';
+  }
+  next();
+});
 
 export default mongoose.model('User', userSchema);

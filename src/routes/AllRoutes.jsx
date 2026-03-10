@@ -4,11 +4,10 @@ import PlaceOrder from '../pages/customer/PlaceOrder';
 import CustomerSignUp from '../pages/Auth/CustomerSignUp';
 import CustomerLogin from '../pages/Auth/CustomerLogin';
 import PrivateRoute from './PrivateRoute';
-import SellerSignUp from '../pages/Auth/SellerSignUp';
-import SellerLogin from '../pages/Auth/SellerLogin';
+import AdminLogin from '../pages/Auth/AdminLogin';
 import VendorSignUp from '../pages/Auth/VendorSignUp';
 import VendorLogin from '../pages/Auth/VendorLogin';
-import SellerPage from '../pages/Seller/SellerPage';
+import AdminPage from '../pages/Seller/AdminPage';
 import VendorPage from '../pages/Vendor/VendorPage';
 import RiderSignUp from '../pages/Auth/RiderSignUp';
 import RiderLogin from '../pages/Auth/RiderLogin';
@@ -29,8 +28,8 @@ const AllRoutes = ({ setShowNavbar }) => {
     "/Main",
     "/CustomerSignUp",
     "/CustomerLogin",
-    "/SellerSignUp",
-    "/SellerLogin",
+    "/AdminLogin",
+    "/AdminPage",
     "/VendorSignUp",
     "/VendorLogin",
     "/RiderSignUp",
@@ -59,15 +58,14 @@ const AllRoutes = ({ setShowNavbar }) => {
           }
         />
 
-        <Route path="/SellerSignUp" element={<SellerSignUp />} />
-        <Route path="/SellerLogin" element={<SellerLogin />} />
+        <Route path="/AdminLogin" element={<AdminLogin />} />
         <Route path="/VendorSignUp" element={<VendorSignUp />} />
         <Route path="/VendorLogin" element={<VendorLogin />} />
         <Route
-          path="/SellerPage"
+          path="/AdminPage"
           element={
-            <PrivateRoute allowedRole="seller">
-              <SellerPage />
+            <PrivateRoute allowedRole="admin">
+              <AdminPage />
             </PrivateRoute>
           }
         />

@@ -11,7 +11,7 @@ const router = express.Router();
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  role: Joi.string().valid('customer', 'seller', 'vendor', 'rider').required(),
+  role: Joi.string().valid('customer', 'seller', 'vendor', 'rider', 'admin').required(),
   name: Joi.string().min(2).max(20).required(),
   phoneNumber: Joi.string()
     .pattern(/^\+?[0-9]{10,15}$/)
@@ -49,12 +49,28 @@ router.post('/register', async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const userData = { email, password: hashed, role, name, phoneNumber };
+    if (role === 'vendor') {
+      userData.approvalStatus = 'pending';
+    }
     if (role === 'seller') {
       userData.restaurantName = restaurantName;
       userData.restaurantAddress = restaurantAddress;
     }
     const user = new User(userData);
     await user.save();
+
+    if (role === 'vendor') {
+      return res.status(201).json({
+        message: 'Vendor registered. Wait for admin approval before login.',
+        user: {
+          email: user.email,
+          role: user.role,
+          name: user.name,
+          phoneNumber: user.phoneNumber,
+          approvalStatus: user.approvalStatus,
+        },
+      });
+    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -96,6 +112,16 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    if (user.role === 'vendor' && user.approvalStatus !== 'approved') {
+      return res.status(403).json({
+        message: 'Vendor account is pending approval by admin',
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'Account is inactive' });
     }
 
     const token = jwt.sign(
