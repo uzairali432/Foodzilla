@@ -39,12 +39,11 @@ const AdminLogin = () => {
       const resp = await loginUser({
         email: data.email,
         password: data.password,
+        expectedRole: "admin",
       });
       localStorage.setItem("token", resp.token);
       localStorage.setItem("user", JSON.stringify(resp.user));
-      if (resp.user.role === "admin") {
-        navigate("/AdminPage");
-      }
+      navigate("/AdminPage");
     } catch (err) {
       alert(err?.response?.data?.message || err.message);
     }

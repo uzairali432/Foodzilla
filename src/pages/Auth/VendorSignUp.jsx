@@ -77,10 +77,15 @@ const VendorSignUp = () => {
         name: data.name,
         phoneNumber: data.phoneNumber,
       });
-      // optionally you can dispatch or update context here
-      localStorage.setItem("token", resp.token);
-      localStorage.setItem("user", JSON.stringify(resp.user));
-      navigate("/VendorPage");
+      if (resp.token && resp.user) {
+        localStorage.setItem("token", resp.token);
+        localStorage.setItem("user", JSON.stringify(resp.user));
+        navigate("/VendorPage");
+        return;
+      }
+
+      alert(resp.message || "Registration submitted. Wait for admin approval.");
+      navigate("/VendorLogin");
     } catch (err) {
       alert(err?.response?.data?.message || err.message);
     }

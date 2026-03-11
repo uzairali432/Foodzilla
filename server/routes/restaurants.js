@@ -5,11 +5,11 @@ import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-// return all sellers (restaurants)
+// return all vendors (restaurants)
 router.get('/', async (req, res) => {
   try {
-    const sellers = await User.find({ role: 'seller' }).select('-password');
-    res.json(sellers);
+    const vendors = await User.find({ role: 'vendor' }).select('-password');
+    res.json(vendors);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -31,7 +31,7 @@ router.get('/:id/products', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const restaurant = await User.findById(req.params.id).select('-password');
-    if (!restaurant || restaurant.role !== 'seller') {
+    if (!restaurant || restaurant.role !== 'vendor') {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
     res.json(restaurant);
@@ -47,7 +47,7 @@ router.post('/:id/reviews', auth, async (req, res) => {
     const { rating, comment } = req.body;
     const restaurant = await User.findById(req.params.id);
 
-    if (!restaurant || restaurant.role !== 'seller') {
+    if (!restaurant || restaurant.role !== 'vendor') {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 

@@ -3,11 +3,13 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 import cors from 'cors';
+import bcrypt from 'bcrypt';
 
 import authRoutes from './routes/auth.js';
 import productsRoutes from './routes/products.js';
 import restaurantRoutes from './routes/restaurants.js';
 import adminRoutes from './routes/admin.js';
+import User from './models/User.js';
 
 // explicitly load environment variables from the server directory
 const envPath = path.resolve(process.cwd(), 'server', '.env');
@@ -30,6 +32,35 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+const ensureDefaultAdmin = async () => {
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) return;
+
+  const existing = await User.findOne({ email: adminEmail });
+  if (existing) {
+    if (existing.role !== 'admin') {
+      existing.role = 'admin';
+      existing.isActive = true;
+      existing.approvalStatus = 'approved';
+      await existing.save();
+    }
+    return;
+  }
+
+  const hashedPassword = await bcrypt.hash(adminPassword, 10);
+  await User.create({
+    email: adminEmail,
+    password: hashedPassword,
+    role: 'admin',
+    name: process.env.ADMIN_NAME || 'Admin',
+    phoneNumber: process.env.ADMIN_PHONE || '+10000000000',
+    isActive: true,
+    approvalStatus: 'approved',
+  });
+  console.log('Default admin account ensured from environment variables.');
+};
+
 if (!process.env.MONGO_URI) {
   console.error('MONGO_URI not defined. Make sure server/.env is set and readable.');
 }
@@ -41,7 +72,14 @@ mongoose
   })
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    ensureDefaultAdmin()
+      .then(() => {
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+      })
+      .catch((err) => {
+        console.error('Failed to ensure default admin account:', err);
+        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+      });
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);

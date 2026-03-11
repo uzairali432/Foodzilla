@@ -31,11 +31,11 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// create new product (seller only)
+// create new product (vendor only)
 router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
-    if (req.user.role !== 'seller') {
-      return res.status(403).json({ message: 'Only sellers can add products' });
+    if (req.user.role !== 'vendor') {
+      return res.status(403).json({ message: 'Only vendors can add products' });
     }
     
     // Use Cloudinary URL if available, else fallback to whatever string is passed in req.body

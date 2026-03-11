@@ -19,9 +19,9 @@ const MainPage = () => {
                 Signup/Login as a Customer
               </button>
             </Link>
-            <Link to="/SellerSignUp">
+            <Link to="/AdminLogin">
               <button className="bg-white text-[#0E2A45] border-2 border-[#0E2A45] w-[100%] font-semibold py-3 rounded-lg hover:bg-[#E64D21] hover:text-white hover:border-[#E64D21] hover:cursor-pointer transition duration-300">
-                Signup/Login as a Seller
+                Login as an Admin
               </button>
             </Link>
             <Link to="/VendorSignUp">

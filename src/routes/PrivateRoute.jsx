@@ -6,7 +6,7 @@ const PrivateRoute = ({ children, allowedRole }) => {
   if (!user) {
     let loginRoute = "/CustomerLogin";
 
-    if (allowedRole === "seller") loginRoute = "/SellerLogin";
+    if (allowedRole === "admin") loginRoute = "/AdminLogin";
     if (allowedRole === "vendor") loginRoute = "/VendorLogin";
     if (allowedRole === "rider") loginRoute = "/RiderLogin";
 

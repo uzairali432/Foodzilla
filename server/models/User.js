@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ['customer', 'seller', 'vendor', 'rider', 'admin'],
+      enum: ['customer', 'vendor', 'rider', 'admin'],
       required: true,
     },
     approvalStatus: {
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
     },
     name: { type: String },
     phoneNumber: { type: String },
-    // fields specific to sellers
+    // fields specific to vendors (restaurants)
     restaurantName: { type: String },
     restaurantAddress: { type: String },
     reviews: [reviewSchema],

@@ -11,26 +11,37 @@ const router = express.Router();
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  role: Joi.string().valid('customer', 'seller', 'vendor', 'rider', 'admin').required(),
+  role: Joi.string().valid('customer', 'vendor', 'rider', 'admin').required(),
   name: Joi.string().min(2).max(20).required(),
   phoneNumber: Joi.string()
     .pattern(/^\+?[0-9]{10,15}$/)
     .required(),
-  // when the user is a seller, we need restaurant information
+  // vendor users can provide restaurant details
   restaurantName: Joi.string().min(2).max(50).when('role', {
-    is: 'seller',
-    then: Joi.required(),
+    is: 'vendor',
+    then: Joi.optional(),
     otherwise: Joi.forbidden(),
   }),
   restaurantAddress: Joi.string()
     .min(5)
     .max(100)
-    .when('role', { is: 'seller', then: Joi.required(), otherwise: Joi.forbidden() }),
+    .when('role', { is: 'vendor', then: Joi.optional(), otherwise: Joi.forbidden() }),
+  businessName: Joi.string().min(2).max(50).when('role', {
+    is: 'vendor',
+    then: Joi.optional(),
+    otherwise: Joi.forbidden(),
+  }),
+  address: Joi.string().min(5).max(100).when('role', {
+    is: 'vendor',
+    then: Joi.optional(),
+    otherwise: Joi.forbidden(),
+  }),
 });
 
 const loginSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
+  expectedRole: Joi.string().valid('customer', 'vendor', 'rider', 'admin').optional(),
 });
 
 // register route
@@ -41,20 +52,31 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password, role, name, phoneNumber, restaurantName, restaurantAddress } = value;
-    const existing = await User.findOne({ email });
+    const {
+      email,
+      password,
+      role,
+      name,
+      phoneNumber,
+      restaurantName,
+      restaurantAddress,
+      businessName,
+      address,
+    } = value;
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const userData = { email, password: hashed, role, name, phoneNumber };
+    const userData = { email: normalizedEmail, password: hashed, role, name, phoneNumber };
     if (role === 'vendor') {
       userData.approvalStatus = 'pending';
     }
-    if (role === 'seller') {
-      userData.restaurantName = restaurantName;
-      userData.restaurantAddress = restaurantAddress;
+    if (role === 'vendor') {
+      userData.restaurantName = restaurantName || businessName;
+      userData.restaurantAddress = restaurantAddress || address;
     }
     const user = new User(userData);
     await user.save();
@@ -103,8 +125,20 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password } = value;
-    const user = await User.findOne({ email });
+    const { email, password, expectedRole } = value;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (expectedRole === 'admin') {
+      const configuredAdminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+      if (!configuredAdminEmail) {
+        return res.status(500).json({ message: 'Admin login is not configured' });
+      }
+      if (normalizedEmail !== configuredAdminEmail) {
+        return res.status(403).json({ message: 'Only authorized admin credentials are allowed' });
+      }
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -112,6 +146,12 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // One-time migration: convert legacy seller accounts to admin.
+    if (user.role === 'seller') {
+      user.role = 'admin';
+      await user.save();
     }
 
     if (user.role === 'vendor' && user.approvalStatus !== 'approved') {
@@ -122,6 +162,10 @@ router.post('/login', async (req, res) => {
 
     if (!user.isActive) {
       return res.status(403).json({ message: 'Account is inactive' });
+    }
+
+    if (expectedRole && user.role !== expectedRole) {
+      return res.status(403).json({ message: `This is not ${expectedRole} account` });
     }
 
     const token = jwt.sign(

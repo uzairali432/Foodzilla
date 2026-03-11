@@ -22,7 +22,6 @@ const AllRoutes = ({ setShowNavbar }) => {
   const location = useLocation();
 
   const hideNavbarRoutes = [
-    "/SellerPage",
     "/VendorPage",
     "/RiderPage",
     "/Main",
