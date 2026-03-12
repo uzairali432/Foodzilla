@@ -1,6 +1,12 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load .env before configuring Cloudinary so env vars are available
+// (ES module static imports resolve before index.js body runs dotenv.config)
+dotenv.config({ path: path.resolve(process.cwd(), 'server', '.env') });
 
 // Cloudinary configuration
 cloudinary.config({

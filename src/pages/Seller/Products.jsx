@@ -31,6 +31,7 @@ const ProductsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [file, setFile] = useState(null);
   const [open, setOpen] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   const { food_list, addProduct, deleteProduct, updateProduct } =
     useContext(StoreContext);
@@ -48,6 +49,7 @@ const ProductsManagement = () => {
   const handleClose = () => {
     setOpen(false);
     setFile(null);
+    setUploadError("");
     setFormData({
       name: "",
       category: "",
@@ -88,9 +90,14 @@ const ProductsManagement = () => {
       data.append('status', formData.status);
       data.append('image', file);
       
-      addProduct(data).then(() => {
-        handleClose();
-      });
+      setUploadError("");
+      addProduct(data)
+        .then(() => {
+          handleClose();
+        })
+        .catch((err) => {
+          setUploadError(err?.message || "Failed to upload product. Please try again.");
+        });
     } else {
       const newProduct = {
         name: formData.name,
@@ -331,6 +338,9 @@ const ProductsManagement = () => {
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
+            {uploadError && (
+              <p className="text-red-500 text-sm self-center mr-auto">{uploadError}</p>
+            )}
             <Button variant="outlined" onClick={handleClose}>
               Cancel
             </Button>

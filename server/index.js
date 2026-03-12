@@ -30,6 +30,13 @@ app.get('/', (req, res) => {
   res.send('Foodzila API is running');
 });
 
+// JSON error handler – must be after all routes
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ message: err.message || 'Server error' });
+});
+
 const PORT = process.env.PORT || 5000;
 
 const ensureDefaultAdmin = async () => {
@@ -74,11 +81,25 @@ mongoose
     console.log('Connected to MongoDB');
     ensureDefaultAdmin()
       .then(() => {
-        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        server.on('error', (err) => {
+          if (err.code === 'EADDRINUSE') {
+            console.error(`Port ${PORT} is already in use. Stop the existing server process and try again.`);
+            return;
+          }
+          console.error('Server startup error:', err);
+        });
       })
       .catch((err) => {
         console.error('Failed to ensure default admin account:', err);
-        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        server.on('error', (listenErr) => {
+          if (listenErr.code === 'EADDRINUSE') {
+            console.error(`Port ${PORT} is already in use. Stop the existing server process and try again.`);
+            return;
+          }
+          console.error('Server startup error:', listenErr);
+        });
       });
   })
   .catch((err) => {

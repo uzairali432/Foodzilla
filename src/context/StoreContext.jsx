@@ -46,10 +46,14 @@ const StoreContextProvider = ({ children }) => {
         body: isFormData ? product : JSON.stringify(product),
       });
       const created = await resp.json();
+      if (!resp.ok) {
+        throw new Error(created.message || 'Failed to add product');
+      }
       setFoodList((prev) => [...prev, created]);
       return created;
     } catch (err) {
       console.error('Add product failed', err);
+      throw err;
     }
   };
 
