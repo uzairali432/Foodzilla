@@ -1,13 +1,15 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
 import { deliveryFee } from "./Cart";
 import { useOrderContext } from "../../components/hooks/useOrder";
 
 const PlaceOrder = () => {
-  const { getTotalCartAmount, clearCart } = useContext(StoreContext);
+  const { getTotalCartAmount, clearCart, cartItems, food_list } = useContext(StoreContext);
   const { state, dispatch } = useOrderContext();
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,25 +24,55 @@ const PlaceOrder = () => {
 
   };
 
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
+  setOrderError("");
 
-  const newDelivery = {
-    id: `D-${Math.floor(Math.random() * 1000)}`,
-    customer: `${state.FirstName} ${state.LastName}`,
-    address: `${state.Street}, ${state.City}`,
-    status: "On the way",
-  };
+  // Build items array from cart
+  const items = Object.entries(cartItems)
+    .filter(([, qty]) => qty > 0)
+    .map(([id, qty]) => {
+      const product = food_list.find((p) => p._id === id);
+      return {
+        product: id,
+        name: product?.name || "Unknown",
+        quantity: qty,
+        price: product?.price || 0,
+      };
+    });
 
-  console.log("Dispatching new delivery:", newDelivery);
-  dispatch({ type: "ADD_DELIVERY", payload: newDelivery });
+  if (items.length === 0) {
+    setOrderError("Your cart is empty.");
+    return;
+  }
 
-  alert("Order placed successfully!");
-  dispatch({type : "RESET_ORDER"})
-  navigate("/");
-  clearCart();
+  const deliveryAddress = `${state.Street}, ${state.City}, ${state.State} ${state.Zip}, ${state.Country}`;
+  const totalAmount = getTotalCartAmount() + deliveryFee;
 
-
+  try {
+    setSubmitting(true);
+    const token = localStorage.getItem("token");
+    const resp = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ items, deliveryAddress, totalAmount }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.message || "Failed to place order");
+    }
+    dispatch({ type: "RESET_ORDER" });
+    clearCart();
+    alert(`Order placed! Order #${data.orderNumber}`);
+    navigate("/");
+  } catch (err) {
+    setOrderError(err.message);
+  } finally {
+    setSubmitting(false);
+  }
 };
 
 
@@ -189,14 +221,17 @@ const handleSubmit = (e) => {
 
             <button
               type="submit"
-              disabled={getTotalCartAmount() === 0}
-              className={`mt-6 w-full py-3 rounded-lg text-white font-semibold transition duration-300 ${getTotalCartAmount() === 0
+              disabled={getTotalCartAmount() === 0 || submitting}
+              className={`mt-6 w-full py-3 rounded-lg text-white font-semibold transition duration-300 ${getTotalCartAmount() === 0 || submitting
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#0E2A45] hover:bg-[#E64D21]"
                 }`}
             >
-              PROCEED TO PAYMENT
+              {submitting ? "Placing Order..." : "PROCEED TO PAYMENT"}
             </button>
+            {orderError && (
+              <p className="mt-3 text-red-500 text-sm text-center">{orderError}</p>
+            )}
           </div>
         </div>
       </form>

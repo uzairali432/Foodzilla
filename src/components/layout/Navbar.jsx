@@ -10,6 +10,8 @@ const Navbar = () => {
   const [menu, setMenu] = useState("home");
   const navigate = useNavigate();
 
+  const isLoggedIn = !!localStorage.getItem("token");
+
   return (
     <nav className="flex justify-around items-center fixed z-10 top-0 w-full py-3 border-b border-[#0E2A45] bg-white"
     >
@@ -81,15 +83,20 @@ const Navbar = () => {
           )}
         </div>
 
-        <Link to={"/Main"}>
-          <button className="bg-[#0E2A45] text-white border border-primary rounded-lg px-8 py-2 text-[16px] hover:bg-[#E64D21] max-[1050px]:px-6 max-[900px]:px-5 max-[900px]:text-[14px] cursor-pointer transition duration-300">
-            Sign in
+        {isLoggedIn ? (
+          <button
+            className="bg-[#0E2A45] text-white border border-primary rounded-lg px-4 py-2 text-[16px] hover:bg-[#E64D21] max-[1050px]:px-6 max-[900px]:px-5 max-[900px]:text-[14px] cursor-pointer transition duration-300"
+            onClick={() => handleLogout(navigate)}
+          >
+            Log out
           </button>
-        </Link>
-        <button className="bg-[#0E2A45] text-white border border-primary rounded-lg px-2 py-1 text-[16px] hover:bg-[#E64D21] max-[1050px]:px-6 max-[900px]:px-5 max-[900px]:text-[14px] cursor-pointer transition duration-300"
-          onClick={() => handleLogout(navigate)}>
-          Log out
-        </button>
+        ) : (
+          <Link to={"/Main"}>
+            <button className="bg-[#0E2A45] text-white border border-primary rounded-lg px-8 py-2 text-[16px] hover:bg-[#E64D21] max-[1050px]:px-6 max-[900px]:px-5 max-[900px]:text-[14px] cursor-pointer transition duration-300">
+              Sign in
+            </button>
+          </Link>
+        )}
       </div>
 
     </nav>

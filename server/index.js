@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 
 import authRoutes from './routes/auth.js';
 import productsRoutes from './routes/products.js';
+import ordersRoutes from './routes/orders.js';
 import restaurantRoutes from './routes/restaurants.js';
 import adminRoutes from './routes/admin.js';
 import User from './models/User.js';
@@ -22,6 +23,7 @@ app.use(express.json());
 // mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/orders', ordersRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/admin', adminRoutes);
 
