@@ -1,8 +1,14 @@
 import { MoreHorizontal, TrendingDown, TrendingUp } from "lucide-react";
 
-import {topProducts, recentOrders} from '../../data/Stats'
+import {
+  topProducts as fallbackTopProducts,
+  recentOrders as fallbackRecentOrders,
+} from "../../data/Stats";
 
-const TableSection = () => {
+const TableSection = ({ recentOrders, topProducts }) => {
+  const orders = Array.isArray(recentOrders) ? recentOrders : fallbackRecentOrders;
+  const products = Array.isArray(topProducts) ? topProducts : fallbackTopProducts;
+
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
@@ -62,7 +68,7 @@ const TableSection = () => {
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map((order, index) => (
+              {orders.map((order, index) => (
                 <tr
                   key={index}
                   className="border-b border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
@@ -106,6 +112,16 @@ const TableSection = () => {
                   </td>
                 </tr>
               ))}
+              {orders.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="p-4 text-center text-sm text-slate-500 dark:text-slate-400"
+                  >
+                    No orders available yet.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -130,7 +146,7 @@ const TableSection = () => {
         </div>
 
         <div className="p-6 space-y-4">
-          {topProducts.map((product, index) => (
+          {products.map((product, index) => (
             <div
               key={index}
               className="flex items-center justify-between p-4 rounded-b-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -166,6 +182,11 @@ const TableSection = () => {
               </div>
             </div>
           ))}
+          {products.length === 0 && (
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              No product sales data available yet.
+            </p>
+          )}
         </div>
       </div>
     </div>

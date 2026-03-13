@@ -1,7 +1,22 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import {salesData} from '../../data/Stats'
+import { salesData as fallbackSalesData } from "../../data/Stats";
 
-const SalesChart = () => {
+const SalesChart = ({ data = fallbackSalesData }) => {
+  const chartData = Array.isArray(data) ? data : fallbackSalesData;
+
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-white dark:bg-slate-900 backdrop-blur-xl rounded-b-2xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+          Sales by Category
+        </h3>
+        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+          No category sales data available yet.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-slate-900 backdrop-blur-xl rounded-b-2xl p-6 border border-slate-200/50 dark:border-slate-700/50">
       <div className="mb-6">
@@ -18,7 +33,7 @@ const SalesChart = () => {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={salesData}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius={40}
@@ -26,7 +41,7 @@ const SalesChart = () => {
               paddingAngle={5}
               dataKey="value"
             >
-              {salesData.map((item, index) => (
+              {chartData.map((item, index) => (
                 <Cell key={`cell-${index}`} fill={item.color} />
               ))}
             </Pie>
@@ -44,7 +59,7 @@ const SalesChart = () => {
 
       {/* Legend */}
       <div className="space-y-3 mt-4">
-        {salesData.map((item, index) => (
+        {chartData.map((item, index) => (
           <div
             className="flex items-center justify-between space-x-3"
             key={index}

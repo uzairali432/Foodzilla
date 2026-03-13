@@ -8,9 +8,24 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import {forecastData} from '../../data/Stats'
+import { forecastData as fallbackForecastData } from "../../data/Stats";
 
-const SalesForecastChart = () => {
+const SalesForecastChart = ({ data = fallbackForecastData }) => {
+  const chartData = Array.isArray(data) ? data : fallbackForecastData;
+
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-700/50 p-6">
+        <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+          Sales Forecast
+        </h3>
+        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+          Not enough data to forecast upcoming sales yet.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-700/50 p-6">
       <div className="flex items-center justify-between mb-6">
@@ -27,7 +42,7 @@ const SalesForecastChart = () => {
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={forecastData}
+            data={chartData}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid

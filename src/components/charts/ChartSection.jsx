@@ -1,15 +1,14 @@
-import React from "react";
 import RevenueChart from "./RevenueChart";
 import SalesChart from "./SalesChart";
 
-const ChartSection = () => {
+const ChartSection = ({ revenueData, salesData }) => {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <div className="xl:col-span-2">
-        <RevenueChart />
+        <RevenueChart data={revenueData} />
       </div>
       <div className="space-y-6">
-        <SalesChart />
+        <SalesChart data={salesData} />
       </div>
     </div>
   );
