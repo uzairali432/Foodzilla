@@ -5,15 +5,13 @@ import { deliveryFee } from "./Cart";
 import { useOrderContext } from "../../components/hooks/useOrder";
 
 const PlaceOrder = () => {
-  const { getTotalCartAmount, clearCart, cartItems, food_list } = useContext(StoreContext);
+  const { getTotalCartAmount, cartItems, food_list } = useContext(StoreContext);
   const { state, dispatch } = useOrderContext();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [orderError, setOrderError] = useState("");
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
     dispatch({
       type: "UPDATE_FIELD",
       payload: {
@@ -52,7 +50,7 @@ const handleSubmit = async (e) => {
   try {
     setSubmitting(true);
     const token = localStorage.getItem("token");
-    const resp = await fetch("/api/orders", {
+    const resp = await fetch("/api/orders/create-checkout-session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -62,12 +60,14 @@ const handleSubmit = async (e) => {
     });
     const data = await resp.json();
     if (!resp.ok) {
-      throw new Error(data.message || "Failed to place order");
+      throw new Error(data.message || "Failed to start Stripe checkout");
     }
-    dispatch({ type: "RESET_ORDER" });
-    clearCart();
-    alert(`Order placed! Order #${data.orderNumber}`);
-    navigate("/");
+
+    if (!data.checkoutUrl) {
+      throw new Error("Stripe checkout URL is missing");
+    }
+
+    window.location.assign(data.checkoutUrl);
   } catch (err) {
     setOrderError(err.message);
   } finally {

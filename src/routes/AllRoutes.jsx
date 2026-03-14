@@ -17,6 +17,8 @@ import Footer from '../components/layout/Footer';
 import Navbar from '../components/layout/Navbar';
 import Home from '../pages/home/Home';
 import RestaurantPage from '../pages/RestaurantPage';
+import PaymentSuccess from '../pages/customer/PaymentSuccess';
+import PaymentCancel from '../pages/customer/PaymentCancel';
 
 const AllRoutes = ({ setShowNavbar }) => {
   const location = useLocation();
@@ -45,6 +47,8 @@ const AllRoutes = ({ setShowNavbar }) => {
         <Route path="/" element={<Home />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/order" element={<PlaceOrder />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-cancel" element={<PaymentCancel />} />
 
         <Route path="/CustomerSignUp" element={<CustomerSignUp />} />
         <Route path="/CustomerLogin" element={<CustomerLogin />} />

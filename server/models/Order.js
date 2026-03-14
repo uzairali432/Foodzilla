@@ -22,6 +22,18 @@ const orderSchema = new mongoose.Schema(
       enum: ['Pending', 'Processing', 'Delivered', 'Cancelled'],
       default: 'Pending',
     },
+    paymentMethod: {
+      type: String,
+      enum: ['stripe', 'cod'],
+      default: 'stripe',
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['Unpaid', 'Paid', 'Refunded', 'PaymentFailed'],
+      default: 'Unpaid',
+    },
+    stripeSessionId: { type: String, default: null },
+    paidAt: { type: Date, default: null },
     deliveryAddress: { type: String },
   },
   { timestamps: true }
