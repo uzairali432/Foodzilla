@@ -12,6 +12,7 @@ Multi-role food ordering platform built with a React + Vite frontend and an Expr
 - Vendor flow: register/login, wait for admin approval, manage products, track vendor orders.
 - Admin flow: approve/reject vendors, manage users, monitor all orders.
 - Rider flow: dedicated login/signup and dashboard routes in frontend.
+- Delivery rider backend flow: riders can register with vehicle details, fetch available deliveries, self-assign orders, and update delivery status.
 - Reviews: customers can review both products and restaurants.
 - Image uploads: product image uploads via Cloudinary.
 
@@ -150,6 +151,10 @@ Orders:
 - `POST /api/orders/cancel-payment` (customer)
 - `GET /api/orders/vendor` (vendor)
 - `PATCH /api/orders/:id/status` (vendor)
+- `GET /api/orders/rider` (rider assigned orders)
+- `GET /api/orders/available` (rider view of unassigned deliveries in processing)
+- `PATCH /api/orders/:id/assign-rider` (rider self-assignment)
+- `PATCH /api/orders/:id/rider-status` (rider delivery status update)
 
 Admin:
 

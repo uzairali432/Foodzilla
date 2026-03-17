@@ -16,6 +16,21 @@ const registerSchema = Joi.object({
   phoneNumber: Joi.string()
     .pattern(/^\+?[0-9]{10,15}$/)
     .required(),
+  vehicleType: Joi.string()
+    .valid('Car', 'Bike', 'Truck', 'Bus', 'Van')
+    .insensitive()
+    .when('role', {
+      is: 'rider',
+      then: Joi.required(),
+      otherwise: Joi.forbidden(),
+    }),
+  licenseNumber: Joi.string()
+    .pattern(/^[A-Za-z0-9\-\s]{5,20}$/)
+    .when('role', {
+      is: 'rider',
+      then: Joi.required(),
+      otherwise: Joi.forbidden(),
+    }),
   // vendor users can provide restaurant details
   restaurantName: Joi.string().min(2).max(50).when('role', {
     is: 'vendor',
@@ -58,6 +73,8 @@ router.post('/register', async (req, res) => {
       role,
       name,
       phoneNumber,
+      vehicleType,
+      licenseNumber,
       restaurantName,
       restaurantAddress,
       businessName,
@@ -74,6 +91,10 @@ router.post('/register', async (req, res) => {
     if (role === 'vendor') {
       userData.approvalStatus = 'pending';
     }
+    if (role === 'rider') {
+      userData.vehicleType = vehicleType;
+      userData.licenseNumber = licenseNumber;
+    }
     if (role === 'vendor') {
       userData.restaurantName = restaurantName || businessName;
       userData.restaurantAddress = restaurantAddress || address;
@@ -89,6 +110,8 @@ router.post('/register', async (req, res) => {
           role: user.role,
           name: user.name,
           phoneNumber: user.phoneNumber,
+          ...(user.vehicleType && { vehicleType: user.vehicleType }),
+          ...(user.licenseNumber && { licenseNumber: user.licenseNumber }),
           approvalStatus: user.approvalStatus,
         },
       });
@@ -107,6 +130,8 @@ router.post('/register', async (req, res) => {
         role: user.role,
         name: user.name,
         phoneNumber: user.phoneNumber,
+        ...(user.vehicleType && { vehicleType: user.vehicleType }),
+        ...(user.licenseNumber && { licenseNumber: user.licenseNumber }),
         ...(user.restaurantName && { restaurantName: user.restaurantName }),
         ...(user.restaurantAddress && { restaurantAddress: user.restaurantAddress }),
       },
@@ -181,6 +206,8 @@ router.post('/login', async (req, res) => {
         role: user.role,
         name: user.name,
         phoneNumber: user.phoneNumber,
+        ...(user.vehicleType && { vehicleType: user.vehicleType }),
+        ...(user.licenseNumber && { licenseNumber: user.licenseNumber }),
         ...(user.restaurantName && { restaurantName: user.restaurantName }),
         ...(user.restaurantAddress && { restaurantAddress: user.restaurantAddress }),
       },

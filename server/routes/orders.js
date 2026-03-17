@@ -235,6 +235,103 @@ router.get('/vendor', auth, async (req, res) => {
   }
 });
 
+// GET /api/orders/rider — rider fetches only assigned orders
+router.get('/rider', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'rider') {
+      return res.status(403).json({ message: 'Rider access required' });
+    }
+    const orders = await Order.find({ rider: req.user.id })
+      .populate('customer', 'name email phoneNumber')
+      .populate('vendor', 'name restaurantName restaurantAddress')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/orders/available — rider sees processable, unassigned deliveries
+router.get('/available', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'rider') {
+      return res.status(403).json({ message: 'Rider access required' });
+    }
+    const orders = await Order.find({ status: 'Processing', rider: null })
+      .populate('customer', 'name email phoneNumber')
+      .populate('vendor', 'name restaurantName restaurantAddress')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/orders/:id/assign-rider — rider self-assigns an available order
+router.patch('/:id/assign-rider', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'rider') {
+      return res.status(403).json({ message: 'Rider access required' });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.status !== 'Processing') {
+      return res.status(400).json({ message: 'Only processing orders can be assigned' });
+    }
+
+    if (order.rider && String(order.rider) !== String(req.user.id)) {
+      return res.status(409).json({ message: 'Order is already assigned to another rider' });
+    }
+
+    order.rider = req.user.id;
+    order.status = 'OutForDelivery';
+    await order.save();
+
+    const populated = await Order.findById(order._id)
+      .populate('customer', 'name email phoneNumber')
+      .populate('vendor', 'name restaurantName restaurantAddress')
+      .populate('rider', 'name email phoneNumber vehicleType');
+
+    res.json(populated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/orders/:id/rider-status — rider updates assigned delivery status
+router.patch('/:id/rider-status', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'rider') {
+      return res.status(403).json({ message: 'Rider access required' });
+    }
+
+    const allowed = ['OutForDelivery', 'Delivered', 'Cancelled'];
+    const { status } = req.body;
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status value' });
+    }
+
+    const order = await Order.findOne({ _id: req.params.id, rider: req.user.id });
+    if (!order) {
+      return res.status(404).json({ message: 'Assigned order not found' });
+    }
+
+    order.status = status;
+    await order.save();
+    res.json(order);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // PATCH /api/orders/:id/status — vendor updates order status
 router.patch('/:id/status', auth, async (req, res) => {
   try {

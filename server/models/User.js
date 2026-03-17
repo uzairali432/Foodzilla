@@ -36,6 +36,8 @@ const userSchema = new mongoose.Schema(
     },
     name: { type: String },
     phoneNumber: { type: String },
+    vehicleType: { type: String },
+    licenseNumber: { type: String },
     // fields specific to vendors (restaurants)
     restaurantName: { type: String },
     restaurantAddress: { type: String },

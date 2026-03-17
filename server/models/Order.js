@@ -15,11 +15,12 @@ const orderSchema = new mongoose.Schema(
     orderNumber: { type: String, required: true, unique: true },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rider: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     items: { type: [orderItemSchema], default: [] },
     totalAmount: { type: Number, required: true, min: 0 },
     status: {
       type: String,
-      enum: ['Pending', 'Processing', 'Delivered', 'Cancelled'],
+      enum: ['Pending', 'Processing', 'OutForDelivery', 'Delivered', 'Cancelled'],
       default: 'Pending',
     },
     paymentMethod: {
