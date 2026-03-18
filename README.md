@@ -180,3 +180,5 @@ Admin:
 - Frontend API requests use relative `/api` paths and rely on Vite proxy config.
 - For production deployment, configure CORS and API base URLs appropriately.
 - Keep secrets only in `server/.env`; never commit real credentials.
+
+Made by Uzair Ali
