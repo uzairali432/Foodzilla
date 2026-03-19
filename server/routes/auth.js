@@ -7,15 +7,50 @@ import User from '../models/User.js';
 
 const router = express.Router();
 
+const validationOptions = {
+  abortEarly: false,
+  stripUnknown: true,
+};
+
+const formatValidationErrors = (error) => {
+  if (!error?.details?.length) {
+    return ['Invalid request data'];
+  }
+
+  return [...new Set(error.details.map((detail) => detail.message))];
+};
+
 // validation schemas
 const registerSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-  role: Joi.string().valid('customer', 'vendor', 'rider', 'admin').required(),
-  name: Joi.string().min(2).max(20).required(),
+  email: Joi.string().trim().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Enter a valid email address (example: alex@example.com)',
+    'any.required': 'Email is required',
+  }),
+  password: Joi.string().min(6).required().messages({
+    'string.empty': 'Password is required',
+    'string.min': 'Password must be at least 6 characters long',
+    'any.required': 'Password is required',
+  }),
+  role: Joi.string().valid('customer', 'vendor', 'rider', 'admin').required().messages({
+    'any.only': 'Role must be one of: customer, vendor, rider, admin',
+    'string.empty': 'Role is required',
+    'any.required': 'Role is required',
+  }),
+  name: Joi.string().trim().min(2).max(20).required().messages({
+    'string.empty': 'Name is required',
+    'string.min': 'Name must be at least 2 characters',
+    'string.max': 'Name must be 20 characters or fewer',
+    'any.required': 'Name is required',
+  }),
   phoneNumber: Joi.string()
     .pattern(/^\+?[0-9]{10,15}$/)
-    .required(),
+    .required()
+    .messages({
+      'string.empty': 'Phone number is required',
+      'string.pattern.base': 'Phone number must be 10 to 15 digits and may start with +',
+      'any.required': 'Phone number is required',
+    }),
   vehicleType: Joi.string()
     .valid('Car', 'Bike', 'Truck', 'Bus', 'Van')
     .insensitive()
@@ -23,6 +58,11 @@ const registerSchema = Joi.object({
       is: 'rider',
       then: Joi.required(),
       otherwise: Joi.forbidden(),
+    })
+    .messages({
+      'any.only': 'Vehicle type must be one of: Car, Bike, Truck, Bus, Van',
+      'any.required': 'Vehicle type is required for rider accounts',
+      'any.unknown': 'Vehicle type should only be provided for rider accounts',
     }),
   licenseNumber: Joi.string()
     .pattern(/^[A-Za-z0-9\-\s]{5,20}$/)
@@ -30,41 +70,77 @@ const registerSchema = Joi.object({
       is: 'rider',
       then: Joi.required(),
       otherwise: Joi.forbidden(),
+    })
+    .messages({
+      'string.pattern.base': 'License number must be 5 to 20 characters (letters, numbers, spaces, or hyphens)',
+      'any.required': 'License number is required for rider accounts',
+      'any.unknown': 'License number should only be provided for rider accounts',
     }),
   // vendor users can provide restaurant details
-  restaurantName: Joi.string().min(2).max(50).when('role', {
+  restaurantName: Joi.string().trim().min(2).max(50).when('role', {
     is: 'vendor',
     then: Joi.optional(),
     otherwise: Joi.forbidden(),
+  }).messages({
+    'string.min': 'Restaurant name must be at least 2 characters',
+    'string.max': 'Restaurant name must be 50 characters or fewer',
+    'any.unknown': 'Restaurant name should only be provided for vendor accounts',
   }),
   restaurantAddress: Joi.string()
+    .trim()
     .min(5)
     .max(100)
-    .when('role', { is: 'vendor', then: Joi.optional(), otherwise: Joi.forbidden() }),
-  businessName: Joi.string().min(2).max(50).when('role', {
+    .when('role', { is: 'vendor', then: Joi.optional(), otherwise: Joi.forbidden() })
+    .messages({
+      'string.min': 'Restaurant address must be at least 5 characters',
+      'string.max': 'Restaurant address must be 100 characters or fewer',
+      'any.unknown': 'Restaurant address should only be provided for vendor accounts',
+    }),
+  businessName: Joi.string().trim().min(2).max(50).when('role', {
     is: 'vendor',
     then: Joi.optional(),
     otherwise: Joi.forbidden(),
+  }).messages({
+    'string.min': 'Business name must be at least 2 characters',
+    'string.max': 'Business name must be 50 characters or fewer',
+    'any.unknown': 'Business name should only be provided for vendor accounts',
   }),
-  address: Joi.string().min(5).max(100).when('role', {
+  address: Joi.string().trim().min(5).max(100).when('role', {
     is: 'vendor',
     then: Joi.optional(),
     otherwise: Joi.forbidden(),
+  }).messages({
+    'string.min': 'Address must be at least 5 characters',
+    'string.max': 'Address must be 100 characters or fewer',
+    'any.unknown': 'Address should only be provided for vendor accounts',
   }),
 });
 
 const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
-  expectedRole: Joi.string().valid('customer', 'vendor', 'rider', 'admin').optional(),
+  email: Joi.string().trim().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Enter a valid email address (example: alex@example.com)',
+    'any.required': 'Email is required',
+  }),
+  password: Joi.string().required().messages({
+    'string.empty': 'Password is required',
+    'any.required': 'Password is required',
+  }),
+  expectedRole: Joi.string().valid('customer', 'vendor', 'rider', 'admin').optional().messages({
+    'any.only': 'Expected role must be one of: customer, vendor, rider, admin',
+  }),
 });
 
 // register route
 router.post('/register', async (req, res) => {
   try {
-    const { error, value } = registerSchema.validate(req.body);
+    const { error, value } = registerSchema.validate(req.body, validationOptions);
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      const errors = formatValidationErrors(error);
+      return res.status(400).json({
+        message: errors[0],
+        errors,
+      });
     }
 
     const {
@@ -145,9 +221,13 @@ router.post('/register', async (req, res) => {
 // login route
 router.post('/login', async (req, res) => {
   try {
-    const { error, value } = loginSchema.validate(req.body);
+    const { error, value } = loginSchema.validate(req.body, validationOptions);
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      const errors = formatValidationErrors(error);
+      return res.status(400).json({
+        message: errors[0],
+        errors,
+      });
     }
 
     const { email, password, expectedRole } = value;
