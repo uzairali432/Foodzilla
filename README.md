@@ -15,6 +15,7 @@ Multi-role food ordering platform built with a React + Vite frontend and an Expr
 - Delivery rider backend flow: riders can register with vehicle details, fetch available deliveries, self-assign orders, and update delivery status.
 - Reviews: customers can review both products and restaurants.
 - Image uploads: product image uploads via Cloudinary.
+- Realistic validation error
 
 ## Tech Stack
 
