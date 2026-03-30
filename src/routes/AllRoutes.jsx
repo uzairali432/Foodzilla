@@ -11,7 +11,7 @@ import AdminPage from '../pages/Seller/AdminPage';
 import VendorPage from '../pages/Vendor/VendorPage';
 import RiderSignUp from '../pages/Auth/RiderSignUp';
 import RiderLogin from '../pages/Auth/RiderLogin';
-import RiderPage from '../pages/rider/RiderPage';
+import RiderPage from '../pages/Rider/RiderPage';
 import Main from '../pages/MainPage';
 import Footer from '../components/layout/Footer';
 import Navbar from '../components/layout/Navbar';
