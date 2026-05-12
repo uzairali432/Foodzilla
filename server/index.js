@@ -41,6 +41,17 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
+const startServer = () => {
+  const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use. Stop the existing server process and try again.`);
+      return;
+    }
+    console.error('Server startup error:', err);
+  });
+};
+
 const ensureDefaultAdmin = async () => {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -83,27 +94,15 @@ mongoose
     console.log('Connected to MongoDB');
     ensureDefaultAdmin()
       .then(() => {
-        const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-        server.on('error', (err) => {
-          if (err.code === 'EADDRINUSE') {
-            console.error(`Port ${PORT} is already in use. Stop the existing server process and try again.`);
-            return;
-          }
-          console.error('Server startup error:', err);
-        });
+        startServer();
       })
       .catch((err) => {
         console.error('Failed to ensure default admin account:', err);
-        const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-        server.on('error', (listenErr) => {
-          if (listenErr.code === 'EADDRINUSE') {
-            console.error(`Port ${PORT} is already in use. Stop the existing server process and try again.`);
-            return;
-          }
-          console.error('Server startup error:', listenErr);
-        });
+        startServer();
       });
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
+    console.warn('Starting API without a database connection. Set MONGO_URI to a reachable MongoDB instance.');
+    startServer();
   });
